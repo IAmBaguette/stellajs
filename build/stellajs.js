@@ -14,17 +14,17 @@ var camera = (function (options) {
     this.objectToFollow = undefined;
 
     this.viewport = {
-        x = options.startX || 0,
-        y = options.startY || 0,
-        width = options.viewWidth,
-        height = options.viewHeight
+        x: options.startX || 0,
+        y: options.startY || 0,
+        width: options.viewWidth,
+        height: options.viewHeight
     };
 
     this.world = {
-        x = 0,
-        y = 0,
-        width = options.worldWidth,
-        height = options.worldHeight
+        x: 0,
+        y: 0,
+        width: options.worldWidth,
+        height: options.worldHeight
     };
 
     this.follow = function (object) {
