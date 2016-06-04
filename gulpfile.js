@@ -11,6 +11,7 @@ gulp.task("watch", function () {
 gulp.task("build", function () {
     return gulp.src(
         [
+            "./src/core/utils.js",
             "./src/core/input.js",
             "./src/core/stellajs.js"
         ])
