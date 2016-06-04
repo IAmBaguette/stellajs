@@ -1,0 +1,11 @@
+{
+  "name": "canvasjs",
+  "version": "0.1.0",
+  "author": {
+    "name": "IAmBaguette"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0"
+  }
+}
