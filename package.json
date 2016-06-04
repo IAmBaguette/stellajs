@@ -4,6 +4,11 @@
   "author": {
     "name": "IAmBaguette"
   },
+  "contributors": [
+    {
+      "name": "chunklele"
+    }
+  ],
   "dependencies": {
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.0"
