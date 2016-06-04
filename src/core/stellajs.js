@@ -46,8 +46,8 @@ var app = (function (canvas) {
             if (DEBUG_MODE) {
                 if (self.input.getKeyPress(e.keyCode)) {
                     var log = "";
-                    for (var attr in Keyboard) {
-                        if (Keyboard[attr] == e.keyCode) {
+                    for (var attr in KeyCode) {
+                        if (KeyCode[attr] == e.keyCode) {
                             log += "Keyboard." + attr + ": ";
                         }
                     }
