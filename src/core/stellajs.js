@@ -5,35 +5,40 @@ var app = (function (canvas) {
     var canvas = canvas;
     var ctx = canvas.getContext("2d");
     this.fps = 60;
+    this.state = undefined;
 
     this.input = new input();
 
-    canvas.addEventListener("keydown", function (e) {
-        if (!self.input.keys[e.keyCode]) {
-            self.input.keyPress[e.keyCode] = true;
-        }
-        self.input.keys[e.keyCode] = true;
+    this.start = function () {
+        if (this.state) {
+            canvas.addEventListener("keydown", function (e) {
+                if (!self.input.keys[e.keyCode]) {
+                    self.input.keyPress[e.keyCode] = true;
+                }
+                self.input.keys[e.keyCode] = true;
 
-        if (DEBUG_MODE) {
-            if (self.input.getKeyDown(e.keyCode)) {
-                var log = "";
-                for (var attr in Keyboard) {
-                    if (Keyboard[attr] == e.keyCode) {
-                        log += "Keyboard." + attr + ": ";
+                if (DEBUG_MODE) {
+                    if (self.input.getKeyDown(e.keyCode)) {
+                        var log = "";
+                        for (var attr in Keyboard) {
+                            if (Keyboard[attr] == e.keyCode) {
+                                log += "Keyboard." + attr + ": ";
+                            }
+                        }
+                        log += e.keyCode;
+                        console.log(log);
                     }
                 }
-                log += e.keyCode;
-                console.log(log);
-            }
+            });
+
+            canvas.addEventListener("keyup", function (e) {
+                self.input.keys[e.keyCode] = false;
+            });
+
+            loop();
+        } else {
+            console.error("state is undefined");
         }
-    });
-
-    canvas.addEventListener("keyup", function (e) {
-        self.input.keys[e.keyCode] = false;
-    });
-
-    this.start = function () {
-        loop();
     };
 
     var loop = function () {
@@ -47,12 +52,16 @@ var app = (function (canvas) {
     };
 
     this.update = function () {
+        this.state.update();
+
         // reset keys
         this.input.keyPress = [];
     };
 
     this.draw = function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        this.state.draw(ctx);
     };
 });
 
