@@ -5,6 +5,10 @@ function drawText(ctx, x, y, text, height) {
         y += height;
     });
 }
+
+function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max);
+}
 var camera = (function (options) {
 
     this.objectToFollow = undefined;
