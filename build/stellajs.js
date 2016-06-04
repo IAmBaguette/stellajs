@@ -6,7 +6,7 @@ var input = (function () {
         return this.keys[keyCode];
     };
 
-    this.getKeyDown = function (keyCode) {
+    this.getKeyPress = function (keyCode) {
         return this.keyPress[keyCode];
     }
 });
@@ -23,7 +23,6 @@ var app = (function (canvas) {
 
     this.start = function () {
         if (this.state) {
-            this.state.stella = self;
             canvas.addEventListener("keydown", function (e) {
                 if (!self.input.keys[e.keyCode]) {
                     self.input.keyPress[e.keyCode] = true;
