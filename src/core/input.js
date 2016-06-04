@@ -6,7 +6,7 @@ var input = (function () {
         return this.keys[keyCode];
     };
 
-    this.getKeyDown = function (keyCode) {
+    this.getKeyPress = function (keyCode) {
         return this.keyPress[keyCode];
     }
 });
