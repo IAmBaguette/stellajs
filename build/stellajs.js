@@ -1,3 +1,10 @@
+function drawText(ctx, x, y, text, height) {
+    var lines = text.split("\n");
+    lines.forEach(function (line) {
+        ctx.fillText(line, x, y);
+        y += height;
+    });
+}
 var input = (function () {
     this.keys = [];
     this.keyPress = [];
@@ -100,6 +107,9 @@ var app = (function (canvas) {
     };
 });
 
-var Keyboard = {
-    Up: 38
+var KeyCode = {
+    LeftArrow: 37,
+    UpArrow: 38,
+    RightArrow: 39,
+    DownArrow: 40
 };
