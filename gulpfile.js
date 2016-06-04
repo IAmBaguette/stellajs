@@ -12,6 +12,7 @@ gulp.task("build", function () {
      gulp.src(
         [
             "./src/core/utils.js",
+            "./src/core/camera.js",            
             "./src/core/input.js",
             "./src/core/stellajs.js"
         ])
