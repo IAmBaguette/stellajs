@@ -12,8 +12,8 @@ var grid = (function (options) {
     ctx.canvas.width = this.width;
     ctx.canvas.height = this.height;
 
-    var rows = this.width / this.blockSize;
-    var columns = this.height / this.blockSize;
+    var rows = this.height / this.blockSize;
+    var columns = this.width / this.blockSize;
 
     ctx.save();
 
