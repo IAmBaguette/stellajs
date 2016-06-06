@@ -23,10 +23,10 @@ var camera = (function (options) {
     this.update = function () {
         //follow player if defined
         if (this.objectToFollow) {
-            if (this.viewport.x > this.world.x && (this.viewport.x * this.viewport.width) < this.world.width)
+            if (this.viewport.x >= this.world.x && (this.viewport.x + this.viewport.width) <= this.world.width)
                 this.viewport.x = this.objectToFollow.x / 2;
 
-            if (this.viewport.y > this.world.y && (this.viewport.y * this.viewport.height) < this.world.height)
+            if (this.viewport.y >= this.world.y && (this.viewport.y + this.viewport.height) <= this.world.height)
                 this.viewport.y = this.objectToFollow.y / 2;
         }
 
