@@ -4,38 +4,45 @@ var app = (function (canvas) {
     var self = this;
     var canvas = canvas;
     var ctx = canvas.getContext("2d");
-    this.fps = 60;
-    this.state = undefined;
-    this.states = {};
 
+    // add new state
     this.add = function (key, state) {
         if (!this.states.hasOwnProperty(key)) {
             this.states.key = state;
         }
     };
-
+    // remove existing state
     this.remove = function (key) {
         if (this.states.hasOwnProperty(key)) {
             delete this.states.key;
         }
     }
-
+    // set state before start
     this.set = function (key) {
         this.state = new this.states.key(self);
     };
+    // canvas/screen width & height
+    this.getScreenSize = function () {
+        return { width: canvas.width, height: canvas.height };
+    };
+    // update canvas size
+    this.resizeCanvas = function () {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
 
-    this.input = new input();
+    this.init = function () {
+        this.fps = 60;
+        this.state = undefined;
+        this.states = {};
+        this.input = new input();
+        // update size
+        this.resizeCanvas();
 
-    this.start = function () {
         window.onresize = function () {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
+            self.resizeCanvas();
             self.draw();
         };
-
-        window.onresize();
-        canvas.focus();
 
         canvas.addEventListener("keydown", function (e) {
             if (!self.input.keys[e.keyCode]) {
@@ -60,6 +67,10 @@ var app = (function (canvas) {
         canvas.addEventListener("keyup", function (e) {
             self.input.keys[e.keyCode] = false;
         });
+    };
+
+    this.start = function () {
+        canvas.focus();
 
         loop();
     };
@@ -86,11 +97,7 @@ var app = (function (canvas) {
 
         this.state.draw(ctx);
     };
-});
 
-var KeyCode = {
-    LeftArrow: 37,
-    UpArrow: 38,
-    RightArrow: 39,
-    DownArrow: 40
-};
+    // call init after everything is loaded
+    this.init();
+});
