@@ -65,8 +65,22 @@ var grid = (function (options) {
 
     ctx = null; //clear data context
 
-    this.draw = function (ctx) {
-        ctx.drawImage(this.image, 0, 0);
+    this.draw = function (ctx, x, y) {
+        x = x || 0;
+        y = y || 0;
+
+        var	width = ctx.canvas.width;
+		var	height = ctx.canvas.height;
+
+        if(this.image.width - x < width){
+            width = this.image.width - x;
+        }
+
+        if(this.image.height - y < height){
+            height = this.image.height - y; 
+        }		
+
+        ctx.drawImage(this.image, x, y, width, height, 0, 0, width, height);
     }
 });
 var camera = (function (options) {
@@ -87,18 +101,27 @@ var camera = (function (options) {
         height: options.worldHeight
     };
 
-    this.follow = function (object) {
+    this.xDeadZone = 0;
+    this.yDeadZone = 0;
+
+    this.follow = function (object, xDeadZone, yDeadZone) {
+        this.xDeadZone = xDeadZone;
+        this.yDeadZone = yDeadZone;
         this.objectToFollow = object;
     };
 
     this.update = function () {
         //follow player if defined
         if (this.objectToFollow) {
-            if (this.viewport.x >= this.world.x && (this.viewport.x + this.viewport.width) <= this.world.width)
-                this.viewport.x = this.objectToFollow.x / 2;
+            if (this.objectToFollow.x - this.viewport.x + this.xDeadZone > this.viewport.width)
+                this.viewport.x = this.objectToFollow.x - (this.viewport.width - this.xDeadZone);
+            else if (this.objectToFollow.x - this.xDeadZone < this.viewport.x)
+                this.viewport.x = this.objectToFollow.x - this.xDeadZone;
 
-            if (this.viewport.y >= this.world.y && (this.viewport.y + this.viewport.height) <= this.world.height)
-                this.viewport.y = this.objectToFollow.y / 2;
+            if (this.objectToFollow.y - this.viewport.y + this.yDeadZone > this.viewport.height)
+                this.viewport.y = this.objectToFollow.y - (this.viewport.height - this.yDeadZone);
+            else if (this.objectToFollow.y - this.yDeadZone < this.viewport.y)
+                this.viewport.y = this.objectToFollow.y - this.yDeadZone;
         }
 
         //don't go over world borders
@@ -109,10 +132,10 @@ var camera = (function (options) {
             this.viewport.y = this.world.y;
 
         if ((this.viewport.width + this.viewport.x) >= this.world.width)
-            this.viewport.x = this.world.x - this.viewport.width;
+            this.viewport.x = (this.world.x + this.world.width) - this.viewport.width;
 
         if ((this.viewport.height + this.viewport.y) >= this.world.height)
-            this.viewport.y = this.world.y - this.viewport.height;
+            this.viewport.y = (this.world.y + this.world.height) - this.viewport.height;
     };
 });
 var KeyCode = {

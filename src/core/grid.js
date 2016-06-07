@@ -54,7 +54,21 @@ var grid = (function (options) {
 
     ctx = null; //clear data context
 
-    this.draw = function (ctx) {
-        ctx.drawImage(this.image, 0, 0);
+    this.draw = function (ctx, x, y) {
+        x = x || 0;
+        y = y || 0;
+
+        var	width = ctx.canvas.width;
+		var	height = ctx.canvas.height;
+
+        if(this.image.width - x < width){
+            width = this.image.width - x;
+        }
+
+        if(this.image.height - y < height){
+            height = this.image.height - y; 
+        }		
+
+        ctx.drawImage(this.image, x, y, width, height, 0, 0, width, height);
     }
 });
