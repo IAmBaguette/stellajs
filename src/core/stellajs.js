@@ -90,6 +90,23 @@ var app = (function (canvas) {
 
         // reset keys
         this.input.keyPress = [];
+
+        for (var key in this.input.axes) {
+            var axe = this.input.axes[key];
+            if (this.input.getKey(axe.positive)) {
+                axe.value = clamp(axe.value - axe.sensitivity, -1, 0);
+            } else if (this.input.getKey(axe.negative)) {
+                axe.value = clamp(axe.value + axe.sensitivity, 0, 1);
+            } else {
+                if (axe.value > 0) {
+                    axe.value = clamp(axe.value - axe.gravity, 0, 1);
+                } else if (axe.value < 0) {
+                    axe.value = clamp(axe.value + axe.gravity, -1, 0);
+                } else {
+                    axe.value = 0;
+                }
+            }
+        }
     };
 
     this.draw = function () {
