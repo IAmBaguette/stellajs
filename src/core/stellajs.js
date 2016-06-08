@@ -8,18 +8,18 @@ var app = (function (canvas) {
     // add new state
     this.add = function (key, state) {
         if (!this.states.hasOwnProperty(key)) {
-            this.states.key = state;
+            this.states[key] = state;
         }
     };
     // remove existing state
     this.remove = function (key) {
         if (this.states.hasOwnProperty(key)) {
-            delete this.states.key;
+            delete this.states[key];
         }
     }
     // set state before start
     this.set = function (key) {
-        this.state = new this.states.key(self);
+        this.state = new this.states[key](self);
     };
     // canvas/screen width & height
     this.getScreenSize = function () {
