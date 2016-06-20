@@ -2,6 +2,9 @@ var input = (function () {
     this.keys = [];
     this.keyPress = [];
     this.axes = {};
+    this.buttons = [];
+    this.buttonPress = [];
+    this.mousePosition = new vector(0, 0);
 
     // options.positive: The button that will send a positive value to the axis.
     // options.negative: The button that will send a negative value to the axis.
@@ -24,7 +27,7 @@ var input = (function () {
         if (this.axes.hasOwnProperty(key)) {
             return this.axes[key].value;
         }
-    }
+    };
 
     this.getKey = function (keyCode) {
         return this.keys[keyCode];
@@ -32,5 +35,13 @@ var input = (function () {
 
     this.getKeyPress = function (keyCode) {
         return this.keyPress[keyCode];
-    }
+    };
+
+    this.getMouseButton = function (button) {
+        return this.buttons[button];
+    };
+
+    this.getMouseButtonPress = function (button) {
+        return this.buttonPress[button];
+    };
 });

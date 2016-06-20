@@ -1,8 +1,11 @@
 var DEBUG_MODE = 1;
 
-var app = (function (canvas) {
+var app = (function (canvas, options) {
     var self = this;
     var canvas = canvas;
+    var options = options || {};
+    options.width = options.width || 800;
+    options.height = options.height || 600;
     var ctx = canvas.getContext("2d");
 
     // add new state
@@ -27,22 +30,43 @@ var app = (function (canvas) {
     };
     // update canvas size
     this.resizeCanvas = function () {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        if (options.fullScreen) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        } else {
+            canvas.width = options.width;
+            canvas.height = options.height;
+        }
     };
 
-    this.init = function () {
-        this.fps = 60;
-        this.state = undefined;
-        this.states = {};
-        this.input = new input();
+    var init = function () {
+        self.fps = 60;
+        self.state = undefined;
+        self.states = {};
+        self.loader = new loader(loaded);
+        self.input = new input();
         // update size
-        this.resizeCanvas();
+        self.resizeCanvas();
 
         window.onresize = function () {
             self.resizeCanvas();
             self.draw();
         };
+
+        canvas.addEventListener("mousemove", function (e) {
+            self.input.mousePosition.set(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener("mousedown", function (e) {
+            if (!self.input.buttons[e.button]) {
+                self.input.buttonPress[e.button] = true;
+            }
+            self.input.buttons[e.button] = true;
+        });
+
+        canvas.addEventListener("mouseup", function (e) {
+            self.input.buttons[e.button] = false;
+        });
 
         canvas.addEventListener("keydown", function (e) {
             if (!self.input.keys[e.keyCode]) {
@@ -72,30 +96,37 @@ var app = (function (canvas) {
     this.start = function () {
         canvas.focus();
 
+        this.loader.start();
+    };
+
+    var loaded = function () {
+        self.state.loaded();
+
         loop();
     };
 
     var loop = function () {
         setTimeout(function () {
             // Drawing code goes here
-            self.update();
-            self.draw();
+            update();
+            draw();
 
             requestAnimationFrame(loop);
-        }, 1000 / this.fps);
+        }, 1000 / self.fps);
     };
 
-    this.update = function () {
-        this.state.update();
+    var update = function () {
+        self.state.update();
 
         // reset keys
-        this.input.keyPress = [];
+        self.input.keyPress = [];
+        self.input.buttonPress = [];
 
-        for (var key in this.input.axes) {
-            var axe = this.input.axes[key];
-            if (this.input.getKey(axe.positive)) {
+        for (var key in self.input.axes) {
+            var axe = self.input.axes[key];
+            if (self.input.getKey(axe.positive)) {
                 axe.value = clamp(axe.value - axe.sensitivity, -1, 0);
-            } else if (this.input.getKey(axe.negative)) {
+            } else if (self.input.getKey(axe.negative)) {
                 axe.value = clamp(axe.value + axe.sensitivity, 0, 1);
             } else {
                 if (axe.value > 0) {
@@ -109,12 +140,12 @@ var app = (function (canvas) {
         }
     };
 
-    this.draw = function () {
+    var draw = function () {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        this.state.draw(ctx);
+        self.state.draw(ctx);
     };
 
     // call init after everything is loaded
-    this.init();
+    init();
 });

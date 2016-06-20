@@ -11,11 +11,14 @@ gulp.task("watch", function () {
 gulp.task("build", function () {
      gulp.src(
         [
+            "./src/core/vector.js",
             "./src/core/utils.js",
             "./src/core/grid.js",
             "./src/core/camera.js",
             "./src/core/keycode.js",            
             "./src/core/input.js",
+            "./src/core/loader.js",
+            "./src/core/state.js",
             "./src/core/stellajs.js"
         ])
         .pipe(concat("stellajs.js"))

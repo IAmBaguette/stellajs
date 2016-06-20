@@ -1,3 +1,60 @@
+var vector = (function () {
+    if (arguments.length == 2) {
+        vector.twoParams.apply(this, arguments);
+    } else if (arguments.length == 1) {
+        vector.oneParam.apply(this, arguments);
+    } else if (arguments.length == 0) {
+        vector.twoParams.apply(this, [0, 0]);
+    }
+});
+
+vector.oneParam = function (a) {
+    vector.twoParams.apply(this, [a.x, a.y]);
+};
+
+vector.twoParams = function (x, y) {
+    this.x = x;
+    this.y = y;
+};
+
+vector.prototype.set = function () {
+    if (arguments.length == 2) {
+        this.set.twoParams.apply(this, arguments);
+    } else if (arguments.length == 1) {
+        this.set.oneParam.apply(this, arguments);
+    }
+};
+
+vector.prototype.set.oneParam = function (a) {
+    this.set(a.x, a.y);
+};
+
+vector.prototype.set.twoParams = function (x, y) {
+    this.x = x;
+    this.y = y;
+};
+
+vector.prototype.equals = function () {
+    if (arguments.length == 2) {
+        return this.equals.twoParams.apply(this, arguments);
+    } else if (arguments.length == 1) {
+        return this.equals.oneParam.apply(this, arguments);
+    } else {
+        return false;
+    }
+};
+
+vector.prototype.equals.oneParam = function (a) {
+    return this.equals(a.x, a.y);
+};
+
+vector.prototype.equals.twoParams = function (x, y) {
+    return this.x == x && this.y == y;
+};
+
+vector.prototype.copy = function () {
+    return new vector(this);
+};
 function drawText(ctx, x, y, text, height) {
     var lines = text.split("\n");
     lines.forEach(function (line) {
@@ -6,9 +63,21 @@ function drawText(ctx, x, y, text, height) {
     });
 }
 
-function clamp(num, min, max) {
+Math.random.rangeInt = function (min, max) {
+    return Math.round(Math.random() * (max - min)) + min;
+};
+
+Math.clamp = function (num, min, max) {
     return Math.min(Math.max(num, min), max);
-}
+};
+
+Math.radians = function (degrees) {
+    return degrees * Math.PI / 180;
+};
+
+Math.degrees = function (radians) {
+    return radians * 180 / Math.PI;
+};
 var grid = (function (options) {
     this.width = options.width;
     this.height = options.height;
@@ -148,6 +217,9 @@ var input = (function () {
     this.keys = [];
     this.keyPress = [];
     this.axes = {};
+    this.buttons = [];
+    this.buttonPress = [];
+    this.mousePosition = new vector(0, 0);
 
     // options.positive: The button that will send a positive value to the axis.
     // options.negative: The button that will send a negative value to the axis.
@@ -170,7 +242,7 @@ var input = (function () {
         if (this.axes.hasOwnProperty(key)) {
             return this.axes[key].value;
         }
-    }
+    };
 
     this.getKey = function (keyCode) {
         return this.keys[keyCode];
@@ -178,13 +250,82 @@ var input = (function () {
 
     this.getKeyPress = function (keyCode) {
         return this.keyPress[keyCode];
+    };
+
+    this.getMouseButton = function (button) {
+        return this.buttons[button];
+    };
+
+    this.getMouseButtonPress = function (button) {
+        return this.buttonPress[button];
+    };
+});
+var loader = (function (callback) {
+    var self = this;
+    this.loaded = {};
+    this.callback = callback;
+
+    this.start = function () {
+        var remaining = Object.keys(this.loaded).length;
+        if (remaining <= 0) {
+            this.callback();
+            return;
+        }
+
+        for (var key in this.loaded) {
+            if (this.loaded.hasOwnProperty(key)) {
+                var img = new Image();
+                img.onload = function () {
+                    --remaining;
+                    if (remaining <= 0) {
+                        self.callback();
+                    }
+                };
+                img.src = this.loaded[key];
+                this.loaded[key] = img;
+            }
+        }
+    };
+
+    this.add = function (key, img) {
+        if (!this.loaded.hasOwnProperty(key)) {
+            this.loaded[key] = img;
+        } else {
+            console.error("can't the same key twice");
+        }
+    };
+    
+    this.get = function (key) {
+        if (this.loaded.hasOwnProperty(key)) {
+            return this.loaded[key];
+        }
+    };
+
+    this.remove = function (key) {
+        if (this.loaded.hasOwnProperty(key)) {
+            delete this.loaded[key];
+        }
     }
 });
+var state = (function (stella) {
+    this.stella = stella;
+    this.input = this.stella.input;
+    this.loader = this.stella.loader;
+});
+
+state.prototype.loaded = function () { };
+
+state.prototype.update = function () { };
+
+state.prototype.draw = function (ctx) { };
 var DEBUG_MODE = 1;
 
-var app = (function (canvas) {
+var app = (function (canvas, options) {
     var self = this;
     var canvas = canvas;
+    var options = options || {};
+    options.width = options.width || 800;
+    options.height = options.height || 600;
     var ctx = canvas.getContext("2d");
 
     // add new state
@@ -209,22 +350,43 @@ var app = (function (canvas) {
     };
     // update canvas size
     this.resizeCanvas = function () {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        if (options.fullScreen) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        } else {
+            canvas.width = options.width;
+            canvas.height = options.height;
+        }
     };
 
-    this.init = function () {
-        this.fps = 60;
-        this.state = undefined;
-        this.states = {};
-        this.input = new input();
+    var init = function () {
+        self.fps = 60;
+        self.state = undefined;
+        self.states = {};
+        self.loader = new loader(loaded);
+        self.input = new input();
         // update size
-        this.resizeCanvas();
+        self.resizeCanvas();
 
         window.onresize = function () {
             self.resizeCanvas();
             self.draw();
         };
+
+        canvas.addEventListener("mousemove", function (e) {
+            self.input.mousePosition.set(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener("mousedown", function (e) {
+            if (!self.input.buttons[e.button]) {
+                self.input.buttonPress[e.button] = true;
+            }
+            self.input.buttons[e.button] = true;
+        });
+
+        canvas.addEventListener("mouseup", function (e) {
+            self.input.buttons[e.button] = false;
+        });
 
         canvas.addEventListener("keydown", function (e) {
             if (!self.input.keys[e.keyCode]) {
@@ -254,30 +416,37 @@ var app = (function (canvas) {
     this.start = function () {
         canvas.focus();
 
+        this.loader.start();
+    };
+
+    var loaded = function () {
+        self.state.loaded();
+
         loop();
     };
 
     var loop = function () {
         setTimeout(function () {
             // Drawing code goes here
-            self.update();
-            self.draw();
+            update();
+            draw();
 
             requestAnimationFrame(loop);
-        }, 1000 / this.fps);
+        }, 1000 / self.fps);
     };
 
-    this.update = function () {
-        this.state.update();
+    var update = function () {
+        self.state.update();
 
         // reset keys
-        this.input.keyPress = [];
+        self.input.keyPress = [];
+        self.input.buttonPress = [];
 
-        for (var key in this.input.axes) {
-            var axe = this.input.axes[key];
-            if (this.input.getKey(axe.positive)) {
+        for (var key in self.input.axes) {
+            var axe = self.input.axes[key];
+            if (self.input.getKey(axe.positive)) {
                 axe.value = clamp(axe.value - axe.sensitivity, -1, 0);
-            } else if (this.input.getKey(axe.negative)) {
+            } else if (self.input.getKey(axe.negative)) {
                 axe.value = clamp(axe.value + axe.sensitivity, 0, 1);
             } else {
                 if (axe.value > 0) {
@@ -291,12 +460,12 @@ var app = (function (canvas) {
         }
     };
 
-    this.draw = function () {
+    var draw = function () {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        this.state.draw(ctx);
+        self.state.draw(ctx);
     };
 
     // call init after everything is loaded
-    this.init();
+    init();
 });
