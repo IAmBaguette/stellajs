@@ -4,7 +4,7 @@ var input = (function () {
     this.axes = {};
     this.buttons = [];
     this.buttonPress = [];
-    this.mousePosition = new vector(0, 0);
+    this.mousePosition = new Vector(0, 0);
 
     // options.positive: The button that will send a positive value to the axis.
     // options.negative: The button that will send a negative value to the axis.

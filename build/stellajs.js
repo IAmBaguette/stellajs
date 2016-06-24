@@ -1,23 +1,47 @@
-var vector = (function () {
+var Vector = (function () {
     if (arguments.length == 2) {
-        vector.twoParams.apply(this, arguments);
+        Vector.twoParams.apply(this, arguments);
     } else if (arguments.length == 1) {
-        vector.oneParam.apply(this, arguments);
+        Vector.oneParam.apply(this, arguments);
     } else if (arguments.length == 0) {
-        vector.twoParams.apply(this, [0, 0]);
+        Vector.twoParams.apply(this, [0, 0]);
     }
 });
 
-vector.oneParam = function (a) {
-    vector.twoParams.apply(this, [a.x, a.y]);
+Vector.oneParam = function (a) {
+    Vector.twoParams.apply(this, [a.x, a.y]);
 };
 
-vector.twoParams = function (x, y) {
+Vector.twoParams = function (x, y) {
     this.x = x;
     this.y = y;
 };
 
-vector.prototype.set = function () {
+Vector.Add = function (a, b) {
+    return new Vector(a.x + b.x, a.y + b.y); 
+};
+
+Vector.Sub = function (a, b) {
+    return new Vector(a.x - b.x, a.y - b.y);
+};
+
+Vector.Mul = function(a, f) {
+    return new Vector(a.x * f, a.y * f);
+};
+
+Vector.Magnitude = function (a) {
+    return a.magnitude();
+};
+
+Vector.Distance = function (a, b) {
+    return Vector.Magnitude(Vector.Sub(b, a));
+};
+
+Vector.Normalize = function (a) {
+    return a.normalize();
+};
+
+Vector.prototype.set = function () {
     if (arguments.length == 2) {
         this.set.twoParams.apply(this, arguments);
     } else if (arguments.length == 1) {
@@ -25,16 +49,32 @@ vector.prototype.set = function () {
     }
 };
 
-vector.prototype.set.oneParam = function (a) {
+Vector.prototype.set.oneParam = function (a) {
     this.set(a.x, a.y);
 };
 
-vector.prototype.set.twoParams = function (x, y) {
+Vector.prototype.set.twoParams = function (x, y) {
     this.x = x;
     this.y = y;
 };
 
-vector.prototype.equals = function () {
+Vector.prototype.add = function (a) {
+    this.x += a.x;
+    this.y += a.y;
+    return this;
+};
+
+Vector.prototype.magnitude = function () {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+};
+
+Vector.prototype.normalize = function () {
+    var m = this.magnitude();
+    m = (m == 0 ? 1 : m);
+    return new Vector(this.x / m, this.y / m);
+};
+
+Vector.prototype.equals = function () {
     if (arguments.length == 2) {
         return this.equals.twoParams.apply(this, arguments);
     } else if (arguments.length == 1) {
@@ -44,18 +84,18 @@ vector.prototype.equals = function () {
     }
 };
 
-vector.prototype.equals.oneParam = function (a) {
+Vector.prototype.equals.oneParam = function (a) {
     return this.equals(a.x, a.y);
 };
 
-vector.prototype.equals.twoParams = function (x, y) {
+Vector.prototype.equals.twoParams = function (x, y) {
     return this.x == x && this.y == y;
 };
 
-vector.prototype.copy = function () {
-    return new vector(this);
+Vector.prototype.copy = function () {
+    return new Vector(this);
 };
-function drawText(ctx, x, y, text, height) {
+function drawText(ctx, text, x, y, height) {
     var lines = text.split("\n");
     lines.forEach(function (line) {
         ctx.fillText(line, x, y);
@@ -219,7 +259,7 @@ var input = (function () {
     this.axes = {};
     this.buttons = [];
     this.buttonPress = [];
-    this.mousePosition = new vector(0, 0);
+    this.mousePosition = new Vector(0, 0);
 
     // options.positive: The button that will send a positive value to the axis.
     // options.negative: The button that will send a negative value to the axis.
@@ -341,10 +381,131 @@ var loader = (function (callback) {
         }
     }
 });
+var Anim = (function () {
+    if (arguments.length == 3) {
+        Anim.threeParams.apply(this, arguments);
+    } else if (arguments.length == 2) {
+        Anim.twoParams.apply(this, arguments);
+    }
+});
+
+Anim.twoParams = function (target, end) {
+    this.target = target;
+    this.start = target.copy();
+    this.end = end.copy();
+    this.distance = Vector.Distance(this.start, this.end);
+    this.direction = Vector.Normalize(Vector.Sub(this.end, this.start));
+};
+
+Anim.threeParams = function (target, x, y) {
+    Anim.twoParams.apply(this, [target, new Vector(x, y)]);
+};
+var animates = (function () {
+    var animating = {};
+    var listeners = {};
+    // add time based animation and ability to set a speed or speed base on time to elapsed
+    // REAL QUEUE ANIMATION (wait until previous vector is done)
+    
+    this.isAnimating = function () {
+        return Object.keys(animating).length > 0;
+    };
+
+    this.add = function () {
+        if (arguments.length == 2) {
+            if (arguments[1] instanceof Array) {
+                this.add.queue.apply(this, arguments);
+            } else {
+                this.add.anim.apply(this, arguments);
+            }
+        }
+    };
+
+    this.add.anim = function (key, anim) {
+        if (!animating.hasOwnProperty(key)) {
+            animating[key] = {};
+            animating[key].queue = [];
+        }
+
+        animating[key].queue.push(anim);
+    };
+
+    this.add.queue = function (key, queue) {
+        if (!animating.hasOwnProperty(key)) {
+            animating[key] = {};
+            animating[key].queue = queue;
+        } else {
+            animating[key].queue.push.apply(animating[key].queue, queue);
+        }
+    };
+
+    this.remove = function (key) {
+        if (animating.hasOwnProperty(key)) {
+            delete animating[key];
+        }
+    }
+
+    this.addListener = function (key, callback) {
+        if (!listeners.hasOwnProperty(key)) {
+            listeners[key] = callback;
+        } else {
+            console.error("listener key already exists")
+        }
+    };
+
+    this.update = function () {
+        var garbage = {};
+        var linearSpeed = 7;
+
+        for (var key in animating) {
+            if (animating.hasOwnProperty(key)) {
+                if (!garbage.hasOwnProperty(key)) {
+                    garbage[key] = {};
+                    garbage[key].queue = [];
+                }
+                var queue = animating[key].queue;
+                var callback = animating[key].callback;
+                for (var index in queue) {
+                    var anim = queue[index];
+                    if (DEBUG_ANIMATING) {
+                        anim.target.set(anim.end);
+                        garbage[key].queue.push(anim);
+                        continue;
+                    }
+
+                    if (Vector.Distance(anim.start, anim.target) >= anim.distance) {
+                        anim.target.set(anim.end);
+                        garbage[key].queue.push(anim);
+                    } else {
+                        anim.target.add(Vector.Mul(anim.direction, linearSpeed));
+                    }
+                }
+            }
+        }
+
+        // clean up
+        for (var key in garbage) {
+            if (garbage.hasOwnProperty(key) &&
+                animating.hasOwnProperty(key)) {
+                var queue = garbage[key].queue;
+                for (var index in queue) {
+                    var i = animating[key].queue.indexOf(queue[index]);
+                    animating[key].queue.splice(i, 1);
+                    if (listeners.hasOwnProperty(key)) {
+                        listeners[key](animating[key].queue.length);
+                    }
+                }
+                if (animating[key].queue.length <= 0) {
+                    this.remove(key);
+                }
+            }
+        }
+    };
+});
 var state = (function (stella) {
     this.stella = stella;
     this.input = this.stella.input;
     this.loader = this.stella.loader;
+    this.animates = this.stella.animates;
 });
 
 state.prototype.loaded = function () { };
@@ -353,6 +514,7 @@ state.prototype.update = function () { };
 
 state.prototype.draw = function (ctx) { };
 var DEBUG_MODE = 1;
+var DEBUG_ANIMATING = 0;
 
 var app = (function (canvas, options) {
     var self = this;
@@ -398,13 +560,14 @@ var app = (function (canvas, options) {
         self.state = undefined;
         self.states = {};
         self.loader = new loader(loaded);
+        self.animates = new animates();
         self.input = new input();
         // update size
         self.resizeCanvas();
 
         window.onresize = function () {
             self.resizeCanvas();
-            self.draw();
+            draw();
         };
 
         canvas.addEventListener("mousemove", function (e) {
@@ -470,6 +633,7 @@ var app = (function (canvas, options) {
     };
 
     var update = function () {
+        self.animates.update();
         self.state.update();
 
         // reset keys

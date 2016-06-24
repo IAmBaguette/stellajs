@@ -1,4 +1,5 @@
 var DEBUG_MODE = 1;
+var DEBUG_ANIMATING = 0;
 
 var app = (function (canvas, options) {
     var self = this;
@@ -44,13 +45,14 @@ var app = (function (canvas, options) {
         self.state = undefined;
         self.states = {};
         self.loader = new loader(loaded);
+        self.animates = new animates();
         self.input = new input();
         // update size
         self.resizeCanvas();
 
         window.onresize = function () {
             self.resizeCanvas();
-            self.draw();
+            draw();
         };
 
         canvas.addEventListener("mousemove", function (e) {
@@ -116,6 +118,7 @@ var app = (function (canvas, options) {
     };
 
     var update = function () {
+        self.animates.update();
         self.state.update();
 
         // reset keys

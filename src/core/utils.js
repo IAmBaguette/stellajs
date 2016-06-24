@@ -1,4 +1,4 @@
-function drawText(ctx, x, y, text, height) {
+function drawText(ctx, text, x, y, height) {
     var lines = text.split("\n");
     lines.forEach(function (line) {
         ctx.fillText(line, x, y);
