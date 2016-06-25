@@ -44,9 +44,9 @@ var app = (function (canvas, options) {
         self.fps = 60;
         self.state = undefined;
         self.states = {};
-        self.loader = new loader(loaded);
+        self.loader = new Loader(loaded);
         self.animates = new animates();
-        self.input = new input();
+        self.input = new Input();
         // update size
         self.resizeCanvas();
 

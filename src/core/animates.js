@@ -46,7 +46,7 @@ var animates = (function () {
         if (!listeners.hasOwnProperty(key)) {
             listeners[key] = callback;
         } else {
-            console.error("listener key already exists")
+            throw "listener key already exists";
         }
     };
 

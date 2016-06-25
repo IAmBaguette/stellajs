@@ -9,8 +9,12 @@
       "name": "chunklele"
     }
   ],
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "gulp": "^3.9.1",
-    "gulp-concat": "^2.6.0"
+    "gulp-concat": "^2.6.0",
+    "gulp-header": "^1.8.7",
+    "gulp-strip-comments": "^2.4.3",
+    "gulp-strip-debug": "^1.1.0"
   }
 }

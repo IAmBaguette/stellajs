@@ -1,11 +1,14 @@
 var gulp = require("gulp");
+var header = require('gulp-header');
 var concat = require("gulp-concat");
+var strip = require('gulp-strip-comments');
+var stripDebug = require("gulp-strip-debug");
 
 
 gulp.task("default", ["build", "watch"]);
 
 gulp.task("watch", function () {
-    gulp.watch('./src/**/*.js', ["build"]);
+    gulp.watch("./src/**/*.js", ["build"]);
 });
 
 gulp.task("build", function () {
@@ -24,5 +27,8 @@ gulp.task("build", function () {
             "./src/core/stellajs.js"
         ])
         .pipe(concat("stellajs.js"))
+        //.pipe(stripDebug())
+        .pipe(strip())
+        //.pipe(header("//TEST\n"))
         .pipe(gulp.dest('./build/'));
 });

@@ -1,4 +1,4 @@
-var input = (function () {
+var Input = (function () {
     this.keys = [];
     this.keyPress = [];
     this.axes = {};

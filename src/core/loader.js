@@ -1,4 +1,4 @@
-var loader = (function (callback) {
+var Loader = (function (callback) {
     var self = this;
     this.loaded = {};
     this.callback = callback;
@@ -46,7 +46,7 @@ var loader = (function (callback) {
         if (!this.loaded.hasOwnProperty(key)) {
             this.loaded[key] = src;
         } else {
-            console.error("can't the same key twice");
+            throw "can't add the same key twice"
         }
     };
 

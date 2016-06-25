@@ -127,7 +127,6 @@ var grid = (function (options) {
 
     this.image = null;
 
-    //Generate grid
     var ctx = document.createElement("canvas").getContext("2d");
     ctx.canvas.width = this.width;
     ctx.canvas.height = this.height;
@@ -139,7 +138,6 @@ var grid = (function (options) {
 
     for (var row = 0; row < rows; row++) {
         for (var column = 0; column < columns; column++) {
-            //Alternate color with modulo (odd, even)
             var color;
             if (row % 2 == 0) {
                 if (column % 2 == 0) {
@@ -168,11 +166,10 @@ var grid = (function (options) {
 
     ctx.restore();
 
-    //store grid as a image texture
     this.image = new Image();
     this.image.src = ctx.canvas.toDataURL("image/png");
 
-    ctx = null; //clear data context
+    ctx = null; 
 
     this.draw = function (ctx, x, y) {
         x = x || 0;
@@ -220,7 +217,6 @@ var camera = (function (options) {
     };
 
     this.update = function () {
-        //follow player if defined
         if (this.objectToFollow) {
             if (this.objectToFollow.x - this.viewport.x + this.xDeadZone > this.viewport.width)
                 this.viewport.x = this.objectToFollow.x - (this.viewport.width - this.xDeadZone);
@@ -233,7 +229,6 @@ var camera = (function (options) {
                 this.viewport.y = this.objectToFollow.y - this.yDeadZone;
         }
 
-        //don't go over world borders
         if (this.viewport.x <= this.world.x)
             this.viewport.x = this.world.x;
 
@@ -253,7 +248,7 @@ var KeyCode = {
     RightArrow: 39,
     DownArrow: 40
 };
-var input = (function () {
+var Input = (function () {
     this.keys = [];
     this.keyPress = [];
     this.axes = {};
@@ -261,10 +256,6 @@ var input = (function () {
     this.buttonPress = [];
     this.mousePosition = new Vector(0, 0);
 
-    // options.positive: The button that will send a positive value to the axis.
-    // options.negative: The button that will send a negative value to the axis.
-    // options.gravity: How fast will the input recenter.
-    // options.sensitivity: For keyboard input, a larger value will result in faster response time. A lower value will be more smooth.
     this.addAxe = function (key, options) {
         if (!this.axes.hasOwnProperty(key)) {
             options.value = 0;
@@ -300,7 +291,7 @@ var input = (function () {
         return this.buttonPress[button];
     };
 });
-var loader = (function (callback) {
+var Loader = (function (callback) {
     var self = this;
     this.loaded = {};
     this.callback = callback;
@@ -335,7 +326,6 @@ var loader = (function (callback) {
         }
     };
 
-    // { "key": "src" }
     this.add.oneParam = function (obj) {
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -348,7 +338,7 @@ var loader = (function (callback) {
         if (!this.loaded.hasOwnProperty(key)) {
             this.loaded[key] = src;
         } else {
-            console.error("can't the same key twice");
+            throw "can't add the same key twice"
         }
     };
 
@@ -360,7 +350,6 @@ var loader = (function (callback) {
         }
     };
 
-    // [key]
     this.get.array = function (array) {
         var results = [];
         array.forEach(function (key) {
@@ -403,10 +392,8 @@ Anim.threeParams = function (target, x, y) {
 var animates = (function () {
     var animating = {};
     var listeners = {};
-    // add time based animation and ability to set a speed or speed base on time to elapsed
-    // REAL QUEUE ANIMATION (wait until previous vector is done)
-    
-    this.isAnimating = function () {
+
+        this.isAnimating = function () {
         return Object.keys(animating).length > 0;
     };
 
@@ -448,7 +435,7 @@ var animates = (function () {
         if (!listeners.hasOwnProperty(key)) {
             listeners[key] = callback;
         } else {
-            console.error("listener key already exists")
+            throw "listener key already exists";
         }
     };
 
@@ -482,7 +469,6 @@ var animates = (function () {
             }
         }
 
-        // clean up
         for (var key in garbage) {
             if (garbage.hasOwnProperty(key) &&
                 animating.hasOwnProperty(key)) {
@@ -524,27 +510,22 @@ var app = (function (canvas, options) {
     options.height = options.height || 600;
     var ctx = canvas.getContext("2d");
 
-    // add new state
     this.add = function (key, state) {
         if (!this.states.hasOwnProperty(key)) {
             this.states[key] = state;
         }
     };
-    // remove existing state
     this.remove = function (key) {
         if (this.states.hasOwnProperty(key)) {
             delete this.states[key];
         }
     }
-    // set state before start
     this.set = function (key) {
         this.state = new this.states[key](self);
     };
-    // canvas/screen width & height
     this.getScreenSize = function () {
         return { width: canvas.width, height: canvas.height };
     };
-    // update canvas size
     this.resizeCanvas = function () {
         if (options.fullScreen) {
             canvas.width = window.innerWidth;
@@ -559,10 +540,9 @@ var app = (function (canvas, options) {
         self.fps = 60;
         self.state = undefined;
         self.states = {};
-        self.loader = new loader(loaded);
+        self.loader = new Loader(loaded);
         self.animates = new animates();
-        self.input = new input();
-        // update size
+        self.input = new Input();
         self.resizeCanvas();
 
         window.onresize = function () {
@@ -624,7 +604,6 @@ var app = (function (canvas, options) {
 
     var loop = function () {
         setTimeout(function () {
-            // Drawing code goes here
             update();
             draw();
 
@@ -636,7 +615,6 @@ var app = (function (canvas, options) {
         self.animates.update();
         self.state.update();
 
-        // reset keys
         self.input.keyPress = [];
         self.input.buttonPress = [];
 
@@ -664,6 +642,5 @@ var app = (function (canvas, options) {
         self.state.draw(ctx);
     };
 
-    // call init after everything is loaded
     init();
 });
