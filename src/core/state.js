@@ -1,12 +1,12 @@
-var state = (function (stella) {
+var State = (function (stella) {
     this.stella = stella;
     this.input = this.stella.input;
     this.loader = this.stella.loader;
     this.animates = this.stella.animates;
 });
 
-state.prototype.loaded = function () { };
+State.prototype.loaded = function () { };
 
-state.prototype.update = function () { };
+State.prototype.update = function (deltaTime) { };
 
-state.prototype.draw = function (ctx) { };
+State.prototype.draw = function (ctx) { };

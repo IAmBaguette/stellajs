@@ -8,6 +8,7 @@ var app = (function (canvas, options) {
     options.width = options.width || 800;
     options.height = options.height || 600;
     var ctx = canvas.getContext("2d");
+    var startTime = 0;
 
     // add new state
     this.add = function (key, state) {
@@ -104,22 +105,26 @@ var app = (function (canvas, options) {
     var loaded = function () {
         self.state.loaded();
 
+        startTime = new Date().getTime();
         loop();
     };
 
     var loop = function () {
-        setTimeout(function () {
-            // Drawing code goes here
-            update();
-            draw();
+        // setTimeout(function () {
+        var deltaTime = (new Date()).getTime() - startTime;
 
-            requestAnimationFrame(loop);
-        }, 1000 / self.fps);
+        update(deltaTime);
+        draw();
+
+        startTime = new Date().getTime();
+
+        requestAnimationFrame(loop);
+        // }, 1000 / self.fps);
     };
 
-    var update = function () {
-        self.animates.update();
-        self.state.update();
+    var update = function (deltaTime) {
+        self.animates.update(deltaTime);
+        self.state.update(deltaTime);
 
         // reset keys
         self.input.keyPress = [];

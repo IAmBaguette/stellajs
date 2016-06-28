@@ -371,29 +371,31 @@ var Loader = (function (callback) {
     }
 });
 var Anim = (function () {
-    if (arguments.length == 3) {
+    if (arguments.length == 4) {
+        Anim.fourParams.apply(this, arguments);
+    } else if (arguments.length == 3) {
         Anim.threeParams.apply(this, arguments);
-    } else if (arguments.length == 2) {
-        Anim.twoParams.apply(this, arguments);
     }
 });
 
-Anim.twoParams = function (target, end) {
+Anim.threeParams = function (target, end, time) {
     this.target = target;
     this.start = target.copy();
     this.end = end.copy();
     this.distance = Vector.Distance(this.start, this.end);
     this.direction = Vector.Normalize(Vector.Sub(this.end, this.start));
+    this.speed = (typeof time !== undefined ? time : 0);
+    this.speed = (time <= 0 ? 1 : time);
 };
 
-Anim.threeParams = function (target, x, y) {
-    Anim.twoParams.apply(this, [target, new Vector(x, y)]);
+Anim.fourParams = function (target, x, y, time) {
+    Anim.twoParams.apply(this, [target, new Vector(x, y), time]);
 };
 var animates = (function () {
     var animating = {};
     var listeners = {};
 
-        this.isAnimating = function () {
+    this.isAnimating = function () {
         return Object.keys(animating).length > 0;
     };
 
@@ -439,9 +441,8 @@ var animates = (function () {
         }
     };
 
-    this.update = function () {
+    this.update = function (deltaTime) {
         var garbage = {};
-        var linearSpeed = 7;
 
         for (var key in animating) {
             if (animating.hasOwnProperty(key)) {
@@ -463,7 +464,8 @@ var animates = (function () {
                         anim.target.set(anim.end);
                         garbage[key].queue.push(anim);
                     } else {
-                        anim.target.add(Vector.Mul(anim.direction, linearSpeed));
+                        var distance = Vector.Distance(anim.start, anim.end);
+                        anim.target.add(Vector.Mul(anim.direction, (distance / anim.speed) * deltaTime));
                     }
                 }
             }
@@ -487,18 +489,18 @@ var animates = (function () {
         }
     };
 });
-var state = (function (stella) {
+var State = (function (stella) {
     this.stella = stella;
     this.input = this.stella.input;
     this.loader = this.stella.loader;
     this.animates = this.stella.animates;
 });
 
-state.prototype.loaded = function () { };
+State.prototype.loaded = function () { };
 
-state.prototype.update = function () { };
+State.prototype.update = function (deltaTime) { };
 
-state.prototype.draw = function (ctx) { };
+State.prototype.draw = function (ctx) { };
 var DEBUG_MODE = 1;
 var DEBUG_ANIMATING = 0;
 
@@ -509,6 +511,7 @@ var app = (function (canvas, options) {
     options.width = options.width || 800;
     options.height = options.height || 600;
     var ctx = canvas.getContext("2d");
+    var startTime = 0;
 
     this.add = function (key, state) {
         if (!this.states.hasOwnProperty(key)) {
@@ -599,21 +602,24 @@ var app = (function (canvas, options) {
     var loaded = function () {
         self.state.loaded();
 
+        startTime = new Date().getTime();
         loop();
     };
 
     var loop = function () {
-        setTimeout(function () {
-            update();
-            draw();
+        var deltaTime = (new Date()).getTime() - startTime;
 
-            requestAnimationFrame(loop);
-        }, 1000 / self.fps);
+        update(deltaTime);
+        draw();
+
+        startTime = new Date().getTime();
+
+        requestAnimationFrame(loop);
     };
 
-    var update = function () {
-        self.animates.update();
-        self.state.update();
+    var update = function (deltaTime) {
+        self.animates.update(deltaTime);
+        self.state.update(deltaTime);
 
         self.input.keyPress = [];
         self.input.buttonPress = [];

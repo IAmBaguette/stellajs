@@ -1,9 +1,8 @@
 var animates = (function () {
     var animating = {};
     var listeners = {};
-    // add time based animation and ability to set a speed or speed base on time to elapsed
     // REAL QUEUE ANIMATION (wait until previous vector is done)
-    
+
     this.isAnimating = function () {
         return Object.keys(animating).length > 0;
     };
@@ -50,9 +49,8 @@ var animates = (function () {
         }
     };
 
-    this.update = function () {
+    this.update = function (deltaTime) {
         var garbage = {};
-        var linearSpeed = 7;
 
         for (var key in animating) {
             if (animating.hasOwnProperty(key)) {
@@ -74,7 +72,8 @@ var animates = (function () {
                         anim.target.set(anim.end);
                         garbage[key].queue.push(anim);
                     } else {
-                        anim.target.add(Vector.Mul(anim.direction, linearSpeed));
+                        var distance = Vector.Distance(anim.start, anim.end);
+                        anim.target.add(Vector.Mul(anim.direction, (distance / anim.speed) * deltaTime));
                     }
                 }
             }
